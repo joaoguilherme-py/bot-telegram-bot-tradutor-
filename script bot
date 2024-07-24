@@ -1,0 +1,67 @@
+import telebot
+from deep_translator import GoogleTranslator
+
+CHAVE_API = "7121074486:AAG_slEj0O0GlbS0VO93zrsHSGdx2NV3CUc"
+
+bot = telebot.TeleBot(CHAVE_API)
+modo_traducao = None
+
+def traducao(texto, source_lang, target_lang):
+    tradutor = GoogleTranslator(source=source_lang, target=target_lang)
+    return tradutor.translate(texto)
+
+@bot.message_handler(commands=['PTBR1'])
+def portugues1(mensagem):
+    global modo_traducao
+    modo_traducao = "en_to_pt"
+    bot.send_message(mensagem.chat.id, "Digite qualquer coisa em inglês para traduzir para português (/exit para sair): ")
+@bot.message_handler(commands=['PTBR2'])
+def portugues2(mensagem):
+    global modo_traducao
+    modo_traducao = "es_to_pt"
+    bot.send_message(mensagem.chat.id, "Digite qualquer coisa em espanhol para traduzir para português (/exit para sair): ")
+
+@bot.message_handler(commands=['ENG'])
+def ingles(mensagem):
+    global modo_traducao
+    modo_traducao = "pt_to_en"
+    bot.send_message(mensagem.chat.id, "Digite qualquer coisa em português para traduzir para inglês (/exit para sair): ")
+
+@bot.message_handler(commands=['ESP'])
+def espanhol(mensagem):
+    global modo_traducao
+    modo_traducao = "pt_to_es"
+    bot.send_message(mensagem.chat.id, "Digite qualquer coisa em português para traduzir para espanhol (/exit para sair): ")
+
+@bot.message_handler(commands=['exit'])
+def saida(mensagem):
+    global modo_traducao
+    modo_traducao = None
+    menu(mensagem)
+
+@bot.message_handler(func=lambda msg: True)
+def traduzir(mensagem):
+    global modo_traducao
+    if modo_traducao:
+        if modo_traducao == "en_to_pt":
+            traducao_texto = traducao(mensagem.text, source_lang="en", target_lang="pt")
+        elif modo_traducao == "pt_to_en":
+            traducao_texto = traducao(mensagem.text, source_lang="pt", target_lang="en")
+        elif modo_traducao == "pt_to_es":
+            traducao_texto = traducao(mensagem.text, source_lang="pt", target_lang="es")
+        elif modo_traducao == "es_to_pt":
+            traducao_texto = traducao(mensagem.text,source_lang="es",target_lang="pt")
+        bot.send_message(mensagem.chat.id, f"Tradução: {traducao_texto}")
+    else:
+        menu(mensagem)
+
+def menu(mensagem):
+    bot.send_message(mensagem.chat.id, """Bem-vindo ao bot tradutor! Clique nas opções abaixo:
+                    /ENG para começar a traduzir para inglês
+                    /ESP para começar a traduzir para espanhol
+                    /PTBR1 para traduzir de inglês para português
+                    /PTBR2 para traduzir de inglês para português
+                    /exit para sair
+    """)
+
+bot.infinity_polling()
